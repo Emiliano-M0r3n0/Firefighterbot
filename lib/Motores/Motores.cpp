@@ -13,6 +13,9 @@
 #define CH_M3 2
 #define CH_M4 3
 
+/**
+ * @brief Declara los pines de control de los motores y los configura como salidas pwm asignandoles sus respectivos canales, *Uso recomendado dentro del void setup* 
+ */
 void iniciarmotores(){
     //Pines de Direccion
     //MOTOR1
@@ -43,7 +46,7 @@ void iniciarmotores(){
 }
 
 /**
- * @brief Controla la dirección y velocidad de los 4 motores.
+ * @brief Controla la dirección y velocidad de los 4 motores, usar un valor positivo hace que gire en sentido horario y un valor negativo lo hace girar en sentido antihorario, de ser un valor nulo, el motor se mantiene apagado *Uso recomendado: Para configurar cada funcion de movimiento individual*
  * @param v1 Velocidad Motor 1 (-255 a 255)
  * @param v2 Velocidad Motor 2 (-255 a 255)
  * @param v3 Velocidad Motor 3 (-255 a 255)

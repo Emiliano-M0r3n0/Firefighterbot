@@ -5,20 +5,19 @@
 #include <ESP32Servo.h>
 #include <pines.h>
 
-/// @brief Ajusta los sensores como entradas y pone en apagado la bomba
+/// @brief Ajusta sensores como salidas, adjuta los servos a sus pines, coloca la bomba en apagado y como salida
 void iniciarExtincion(); 
-/**
- * @brief Guarda la lectura de los sensores, hace una diferencia entre ellos y en base a esto mueve el servo hacia la posicion con el fuego
- * 
- * @return * void 
- */
-void seguirFlama();
-/**
- * @brief Lee los sensores, en caso de detectar fuego regresa un 1 de otro caso regresa un 0
- * 
- * @return *int
- */
-int leerSensores();                   
 
+/// @brief El servo_sensor hace un barrido cte al encontrar fuego se detiene y el servo_pum se dirige automaticamente a esa posicion
+void seguirFlama();
+
+/// @brief Lee los sensores y regresa un valor en funcion del umbral
+/// @return true or false
+bool leerSensores();                   
+
+//-------------------------Funciones para Debugear-------------------//
+
+/// @brief Manda los servos a su posicion 0
+void zero_servo();
 
 #endif

@@ -2,99 +2,60 @@
 #include <Arduino.h>
 #include <pines.h>
 
-double contador = 0;
-double sumatoria = 0;
-double promedio = 0;
-Servo servoExtincion;
-int posicionServo = 90;
+Servo servopump; //Servo que controla la direccion del agua
+Servo servosensor; //Servo que controla la direccion del sensor (Esta en cte movimiento)
+int posSensor = 0; //Iniciamos en cero para que no guarde basura (Por si acaso)
+const int POS_MIN = 20; //MIN y MAX son los topes que encuentra
+const int POS_MAX = 160;
+int umbral = 2300; //Apartir de que valor esta detectando flama
+int Dirsensor = 1;
 
 void iniciarExtincion() {
-    servoExtincion.attach(SERVO_PIN);
-    servoExtincion.write(posicionServo); // Posición de reposo
-
-    pinMode(WATER_PUMP, OUTPUT);
-    pinMode(SENSOR_FLAMAIZQ, INPUT);
-    pinMode(SENSOR_FLAMADER, INPUT);
+    posSensor = 90;
+    pinMode(SENSOR_FLAMA,INPUT); //Pin del sensor como entrada
+    pinMode(WATER_PUMP,OUTPUT); //Pin de la bomba de agua como salida
+    digitalWrite(WATER_PUMP,LOW); //Colocamos la bomba de agua como 
+    servopump.attach(SERVO_BOMBA);
+    servosensor.attach(SERVO_SENSOR);
+    servopump.write(90); //Inicia alineada
+    servosensor.write(posSensor);
 }
 
-int leerSensores() {
-    int activacion;
-    int flamaIzq = analogRead(SENSOR_FLAMAIZQ);
-    int flamaDer = analogRead(SENSOR_FLAMADER);
-    Serial.print("Sensor izquierdo:");
-    Serial.println(flamaIzq);
-    Serial.print("Sensor derecho:");
-    Serial.println(flamaDer);
-    if (flamaIzq <= 1300 || flamaDer <= 2300) { 
-        Serial.println("¡Flama detectada! Iniciando extinción...");
-        activacion = 1;
-    }
+bool leerSensores() {
+    int lectura_flama = analogRead(SENSOR_FLAMA); //Lectura del sensor de 0 a 4095
+    if(lectura_flama <= umbral) return true; //Es menor que porque los sensores de flama entre mas flama tenga regresan una señal mas baja
     else
-    {
-        activacion = 0;
-    }
-    return (activacion);
-    delay(50); // para no saturar el monitor
+    return false;
 }
 
 void seguirFlama() {
-    int flamaIzq = analogRead(SENSOR_FLAMAIZQ);
-    int flamaDer = analogRead(SENSOR_FLAMADER);
+    bool indicador = leerSensores();
+    if(indicador == true)
+    {
+        servopump.write(posSensor);
+        digitalWrite(WATER_PUMP,HIGH);
+        delay(1500);
+    }
+    else if(indicador == false)
+    {   
+        digitalWrite(WATER_PUMP,LOW);
 
-    // Mientras más pequeño el valor, más fuerte la flama
-    float diferencia = (float)flamaIzq - (float)flamaDer;
+        servosensor.write(posSensor);
+        delay(10); //Cambia la velocidad del servo
 
-    Serial.print("\tDiferencia: ");
-    Serial.println(diferencia);
+        posSensor += Dirsensor *2;
 
-    // Umbral de sensibilidad
-    int umbral = 200;
-
-    /*sumatoria += diferencia;
-    contador += 1;
-    promedio += (sumatoria/contador);
-
-    Serial.print("\tFactor");
-    Serial.println(promedio);*/
-    // Limitar el movimiento entre 0° y 180°
-    //posicionServo = constrain(posicionServo, 0, 180);
-
-
-
-    // Flama más intensa a la derecha
-    if (flamaDer > flamaIzq) {
-        //Se mueve inicialmente hacia 45 grados para hacer una barrido de 45 a 0, luego regresa a 45 y hace otro barrido de 45 a 90
-        servoExtincion.write(45);
-        for (int i = 45; i > 0; i--)
+        if(posSensor >= POS_MAX || posSensor <= POS_MIN)
         {
-            servoExtincion.write(i);
-            delay(5);
-        }
-        servoExtincion.write(45);
-        for (int i = 45; i < 91; i++)
-        {
-            servoExtincion.write(i);
-            delay(5);
+            Dirsensor = -Dirsensor;
         }
     }
-    //Flama mas intensa a la izquierda
-    else {
-        //Se mueve inicialmente hacia 135 grados para hacer un barrido de 135 a 180, luego regresa a 135 y hace otro barrido de 135 a 90
-        servoExtincion.write(135);
-        for(int i = 135; i < 181; i++)
-        {
-            servoExtincion.write(i);
-            delay(5);
-        }
-        servoExtincion.write(135);
-        for (int i = 135; i > 89; i--)
-        {
-            servoExtincion.write(i);
-            delay(5);
-        }
-    } 
+}
 
+//-----------------Funciones para Debuggear-----------------//
 
-
-    delay(5);
+void zero_servo()
+{
+    servopump.write(90);
+    servosensor.write(90);
 }
