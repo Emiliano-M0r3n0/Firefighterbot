@@ -1,10 +1,6 @@
 #ifndef EXTINCION_H
 #define EXTINCION_H
 
-#include <Arduino.h>
-#include <ESP32Servo.h>
-#include <pines.h>
-
 /// @brief Ajusta sensores como salidas, adjuta los servos a sus pines, coloca la bomba en apagado y como salida
 void iniciarExtincion(); 
 
@@ -20,4 +16,6 @@ bool leerSensores();
 /// @brief Manda los servos a su posicion 0
 void zero_servo();
 
+/// @brief Realiza un barrido de ambos servomotores de 0 a 180 y de regreso
+void barrido();
 #endif

@@ -8,10 +8,10 @@
 #define PWM_RESOLUTION 8   // Resolución de 8 bits (0–255)
 
 // Canales (0 a 15 disponibles)
-#define CH_M1 0
-#define CH_M2 1
-#define CH_M3 2
-#define CH_M4 3
+#define CH_M1 4
+#define CH_M2 5
+#define CH_M3 6
+#define CH_M4 7
 
 /**
  * @brief Declara los pines de control de los motores y los configura como salidas pwm asignandoles sus respectivos canales, *Uso recomendado dentro del void setup* 
