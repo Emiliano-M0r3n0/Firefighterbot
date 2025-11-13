@@ -33,7 +33,18 @@ void movgiroder();
 void movgiroaxeizq();
 /// @brief Enciende los motores para girar sobre su eje a la drecha
 void movgiroaxeder();
+/// @brief Detiene todos los motores
+void stop();
 
 void moverMotores(float v1, float v2, float v3, float v4);
+
+//Funciones para Debuggear/Testear
+
+/// @brief Mueve los motores en orden para realizar un cuadrado
+void cuadrado(int time);
+
+/// @brief El robot realiza un recorrido de un cuadrado en siete pasos
+/// @param time Tiempo en milisegundos que duran los motores encendidos
+void sevensquare(int time);
 
 #endif

@@ -81,18 +81,61 @@ void moverMotores(float v1, float v2, float v3, float v4) {
   }
 }
 
-//Funciones de movimiento
-
+//--------------------Funciones de movimiento----------------------------
 void movadelante()   { moverMotores(255, 255, 255, 255); }
 void movatras()      { moverMotores(-255, -255, -255, -255); }
-void movderecha()    { moverMotores(255, -255, -255, 255); }
-void movizquierda()  { moverMotores(-255, 255, 255, -255); }
-void movnoreste()    { moverMotores(255, 0, 0, 255); }
-void movsureste()    { moverMotores(0, -255, -255, 0); }
-void movsuroeste()   { moverMotores(-255, 0, 0, -255); }
-void movnoroeste()   { moverMotores(0, 255, 255, 0); }
-void movgiroizq()    { moverMotores(-255, 255, -255, 255); }
+
+// Movimientos laterales
+void movderecha()    { moverMotores(-255, 255, 255, -255); }
+void movizquierda()  { moverMotores(255, -255, -255, 255); }
+
+// Diagonales
+void movnoreste()    { moverMotores(0, 255, -255, 0); }
+void movsureste()    { moverMotores(-255, 0, 0, 255); }
+void movsuroeste()   { moverMotores(0, -255, 255, 0); }
+void movnoroeste()   { moverMotores(255, 0, 0, -255); }
+
+// Rotaciones sobre eje
 void movgiroder()    { moverMotores(255, -255, 255, -255); }
+void movgiroizq()    { moverMotores(-255, 255, -255, 255); }
+
+// Giros diagonales opcionales (no estándar)
 void movgiroaxeizq() { moverMotores(-255, -255, 255, 255); }
 void movgiroaxeder() { moverMotores(255, 255, -255, -255); }
 
+// Parada total
+void stop()          { moverMotores(0,0,0,0); }
+
+
+//--------------------Funciones para Debuggear/Testear-----------------------
+void cuadrado(int time)
+{
+    movadelante();
+    delay(time);
+    movderecha();
+    delay(time);
+    movatras();
+    delay(time);
+    movizquierda();
+    delay(time);
+    stop();
+}
+
+void sevensquare(int time)
+{
+  movizquierda();
+  delay(time/2);
+  movadelante();
+  delay(time/2);
+  movderecha();
+  delay(time);
+  movatras();
+  delay(time);
+  movizquierda();
+  delay(time);
+  movadelante();
+  delay(time/2);
+  movderecha();
+  delay(time/2);
+  stop();
+}
