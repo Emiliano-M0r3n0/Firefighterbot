@@ -38,6 +38,12 @@ void stop();
 
 void moverMotores(float v1, float v2, float v3, float v4);
 
+/// @brief 
+/// @param tiempoMovimiento 
+/// @param tiempoPausa 
+/// @param tiempoBarrido 
+void routinemov(const unsigned long tiempoMovimiento,const unsigned long tiempoPausa,const unsigned long tiempoBarrido);
+
 //Funciones para Debuggear/Testear
 
 /// @brief Mueve los motores en orden para realizar un cuadrado

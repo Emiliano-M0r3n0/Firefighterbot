@@ -106,6 +106,18 @@ void movgiroaxeder() { moverMotores(255, 255, -255, -255); }
 // Parada total
 void stop()          { moverMotores(0,0,0,0); }
 
+//-----------------------Rutinas-------------------------------
+
+void routinemov(unsigned long tiempoMovimiento,
+                const unsigned long tiempoPausa,
+                const unsigned long tiempoBarrido)
+{
+  unsigned long tInicio = 0;
+  unsigned long ahora;
+  bool haciendoBarrido = false;
+  int estado = 0;
+
+}
 
 //--------------------Funciones para Debuggear/Testear-----------------------
 void cuadrado(int time)
@@ -139,3 +151,4 @@ void sevensquare(int time)
   delay(time/2);
   stop();
 }
+
