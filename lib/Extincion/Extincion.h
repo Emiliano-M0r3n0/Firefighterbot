@@ -1,6 +1,15 @@
 #ifndef EXTINCION_H
 #define EXTINCION_H
 
+// Asegúrate de que el enum es público
+enum EstadoExtincion {
+    BARRIDO,
+    APAGANDO
+};
+
+// **AÑADE ESTA LÍNEA:** Declara la variable como global (externa)
+extern EstadoExtincion estadoActual;
+
 /// @brief Ajusta sensores como salidas, adjuta los servos a sus pines, coloca la bomba en apagado y como salida
 void iniciarExtincion(); 
 

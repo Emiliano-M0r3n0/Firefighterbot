@@ -7,6 +7,7 @@
 #ifndef MOTORES_H
 
 #define MOTORES_H
+typedef void (*MovimientoFunc)();
 /// @brief Hace una declaración de todos los pines adjuntados a los motores como salidas, asi como los canales PWM
 void iniciarmotores();
 /// @brief Enciende los motores en orden para avanzar hacia adelante
@@ -38,19 +39,19 @@ void stop();
 
 void moverMotores(float v1, float v2, float v3, float v4);
 
-/// @brief 
-/// @param tiempoMovimiento 
-/// @param tiempoPausa 
-/// @param tiempoBarrido 
-void routinemov(const unsigned long tiempoMovimiento,const unsigned long tiempoPausa,const unsigned long tiempoBarrido);
+bool ejecutarSecuencia(MovimientoFunc mover,
+                       unsigned long timeMov,
+                       unsigned long timePause,
+                       unsigned long timeBarrido,
+                       int &estado,
+                       unsigned long &tInicio);
 
-//Funciones para Debuggear/Testear
+//Rutinas
+/// @brief Realiza una rutina en forma de cuadrado
+/// @param timemov Tiempo que dura el movimiento 
+/// @param timepause Pausa entre movimientos
+/// @param timelens Tiempo que hace la lectura de la flama
+void square(int timemov,int timepause,int timelens);
 
-/// @brief Mueve los motores en orden para realizar un cuadrado
-void cuadrado(int time);
-
-/// @brief El robot realiza un recorrido de un cuadrado en siete pasos
-/// @param time Tiempo en milisegundos que duran los motores encendidos
-void sevensquare(int time);
 
 #endif

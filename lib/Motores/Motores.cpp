@@ -1,5 +1,6 @@
 //Motores.cpp
 #include"Motores.h"
+#include"Extincion.h"
 #include<pines.h>
 #include<Arduino.h>
 
@@ -106,49 +107,89 @@ void movgiroaxeder() { moverMotores(255, 255, -255, -255); }
 // Parada total
 void stop()          { moverMotores(0,0,0,0); }
 
+//Movimiento conjunto
+bool ejecutarSecuencia(MovimientoFunc mover,
+                       unsigned long timeMov,
+                       unsigned long timePause,
+                       unsigned long timelens,
+                       int &estado,
+                       unsigned long &tInicio)
+{
+    unsigned long ahora = millis();
+
+    switch (estado) {
+
+        case 0:
+            mover();
+            tInicio = ahora;
+            estado = 1;
+            break;
+
+        case 1:
+            if (ahora - tInicio >= timeMov) {
+                stop();
+                tInicio = ahora;
+                estado = 2;
+            }
+            break;
+
+        case 2:
+            if (ahora - tInicio >= timePause) {
+                tInicio = ahora;
+                estado = 3;
+            }
+            break;
+
+        case 3:
+
+            if (ahora - tInicio >= timelens) {
+                estado = 4;
+            }
+            break;
+
+        case 4:
+            estado = 0;
+            return true;
+    }
+
+    return false;
+}
+
 //-----------------------Rutinas-------------------------------
 
-void routinemov(unsigned long tiempoMovimiento,
-                const unsigned long tiempoPausa,
-                const unsigned long tiempoBarrido)
+void square(int timemov,int timepause,int timelens)
 {
-  unsigned long tInicio = 0;
-  unsigned long ahora;
-  bool haciendoBarrido = false;
-  int estado = 0;
+    static int secuencia_general = 0;
 
+    static int estado = 0;
+    static unsigned long tInicio = 0;
+
+    switch (secuencia_general)
+    {
+        case 0:
+            if (ejecutarSecuencia(movadelante, timemov, timepause, timelens, 
+                                  estado,tInicio))
+                secuencia_general++;
+            break;
+
+        case 1:
+            if (ejecutarSecuencia(movderecha, timemov, timepause, timelens,
+                                  estado,tInicio))
+                secuencia_general++;
+            break;
+
+        case 2:
+            if (ejecutarSecuencia(movatras, timemov, timepause, timelens,
+                                  estado,tInicio))
+                secuencia_general++;
+            break;
+
+        case 3:
+            if (ejecutarSecuencia(movizquierda, timemov, timepause, timelens,
+                                  estado,tInicio))
+                secuencia_general = 0; // repetir indefinido
+            break;
+    }
 }
 
-//--------------------Funciones para Debuggear/Testear-----------------------
-void cuadrado(int time)
-{
-    movadelante();
-    delay(time);
-    movderecha();
-    delay(time);
-    movatras();
-    delay(time);
-    movizquierda();
-    delay(time);
-    stop();
-}
-
-void sevensquare(int time)
-{
-  movizquierda();
-  delay(time/2);
-  movadelante();
-  delay(time/2);
-  movderecha();
-  delay(time);
-  movatras();
-  delay(time);
-  movizquierda();
-  delay(time);
-  movadelante();
-  delay(time/2);
-  movderecha();
-  delay(time/2);
-  stop();
-}
 

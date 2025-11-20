@@ -11,6 +11,18 @@ const int POS_MAX = 160;
 int umbral = 2300; //Apartir de que valor esta detectando flama
 int Dirsensor = 1;
 
+// Nuevas variables para control NO BLOQUEANTE
+bool flamaEncontrada = false; // Estado para saber si se encontró flama
+unsigned long tInicioApagado = 0; // Tiempo para el retardo de apagado (750ms)
+const long tiempoApagado = 750;  // Duración del chorro de agua
+unsigned long tUltimoBarrido = 0; // Tiempo para el retardo de barrido (10ms)
+const long intervaloBarrido = 10; // Intervalo para mover el servo sensor
+
+// Variable estática original (la definiremos como global si es necesario que persista fuera de la función)
+int lastPos = -1; // Mantenemos la lógica de la posición anterior
+
+EstadoExtincion estadoActual = BARRIDO;
+
 void iniciarExtincion() {
     posSensor = 90;
     ESP32PWM::allocateTimer(0); //Configuramos el par de relojes que usaremos para evitar interferencias con el pwm de los motores
@@ -35,27 +47,53 @@ bool leerSensores() {
 
 void seguirFlama() {
     bool indicador = leerSensores();
-    static int lastPos = -1;
-    if(indicador == true)
-    {
+    unsigned long ahora = millis();
+    
+    // Si la flama se detecta y el sistema estaba en modo BARRIDO
+    if (indicador == true && estadoActual == BARRIDO) {
+        
+        // 1. **INICIO DE APAGADO**
         servopump.write(posSensor);
-        digitalWrite(WATER_PUMP,HIGH);
-        delay(750);
+        digitalWrite(WATER_PUMP, HIGH);
+        digitalWrite(BUZZER,HIGH);
+        tInicioApagado = ahora; // Marca el inicio del tiempo de chorro
+        estadoActual = APAGANDO;
+        
     }
-    else
-    {   
-        digitalWrite(WATER_PUMP,LOW);
 
-        if (posSensor != lastPos) {   // Solo mover si cambió
-            servosensor.write(posSensor);
-            lastPos = posSensor;
+    // Lógica para el estado **APAGANDO** (Reemplaza el delay(750))
+    if (estadoActual == APAGANDO) {
+        if (ahora - tInicioApagado >= tiempoApagado) {
+            
+            // 2. **FIN DE APAGADO**
+            digitalWrite(WATER_PUMP, LOW);
+            estadoActual = BARRIDO; // Regresa al modo barrido
+            
+        } else {
+            // Mientras no se cumpla el tiempo, sigue en modo APAGANDO (no bloquea)
+            return; 
         }
-        delay(10);
-        posSensor += Dirsensor *2;
+    }
 
-        if(posSensor >= POS_MAX || posSensor <= POS_MIN)
-        {
-            Dirsensor = -Dirsensor;
+    // Lógica para el estado **BARRIDO** (Reemplaza el delay(10) y la rama 'else' del original)
+    if (estadoActual == BARRIDO) {
+        
+        // El servo se mueve solo si ha pasado el intervalo de 10ms
+        if (ahora - tUltimoBarrido >= intervaloBarrido) {
+            
+            tUltimoBarrido = ahora;
+            
+            posSensor += Dirsensor * 2;
+            
+            if (posSensor >= POS_MAX || posSensor <= POS_MIN) {
+                Dirsensor = -Dirsensor;
+            }
+
+            // Solo mover el servo si la posición cambió (manteniendo tu lógica original)
+            if (posSensor != lastPos) {
+                servosensor.write(posSensor);
+                lastPos = posSensor;
+            }
         }
     }
 }
