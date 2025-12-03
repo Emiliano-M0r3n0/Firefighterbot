@@ -4,6 +4,11 @@
 #include<pines.h>
 #include<Arduino.h>
 
+// Variables de estado_square de la rutina square (DEFINICIÓN CORREGIDA)
+int secuencia_general_square = 0; // ¡Corregido!
+int estado_square = 0;            // ¡Corregido!
+unsigned long tInicio_square = 0; // ¡Corregido!
+
 // Definimos canales PWM para el ESP32
 #define PWM_FREQ 5000      // Frecuencia PWM (Hz)
 #define PWM_RESOLUTION 8   // Resolución de 8 bits (0–255)
@@ -91,10 +96,10 @@ void movderecha()    { moverMotores(-255, 255, 255, -255); }
 void movizquierda()  { moverMotores(255, -255, -255, 255); }
 
 // Diagonales
-void movnoreste()    { moverMotores(0, 255, -255, 0); }
-void movsureste()    { moverMotores(-255, 0, 0, 255); }
-void movsuroeste()   { moverMotores(0, -255, 255, 0); }
-void movnoroeste()   { moverMotores(255, 0, 0, -255); }
+void movnoreste()    { moverMotores(0, 255, 255, 0); }
+void movsureste()    { moverMotores(-255, 0, 0, -255); }
+void movsuroeste()   { moverMotores(0, -255, -255, 0); }
+void movnoroeste()   { moverMotores(255, 0, 0, 255); }
 
 // Rotaciones sobre eje
 void movgiroder()    { moverMotores(255, -255, 255, -255); }
@@ -112,43 +117,43 @@ bool ejecutarSecuencia(MovimientoFunc mover,
                        unsigned long timeMov,
                        unsigned long timePause,
                        unsigned long timelens,
-                       int &estado,
-                       unsigned long &tInicio)
+                       int &estado_square,
+                       unsigned long &tInicio_square)
 {
     unsigned long ahora = millis();
 
-    switch (estado) {
+    switch (estado_square) {
 
         case 0:
             mover();
-            tInicio = ahora;
-            estado = 1;
+            tInicio_square = ahora;
+            estado_square = 1;
             break;
 
         case 1:
-            if (ahora - tInicio >= timeMov) {
+            if (ahora - tInicio_square >= timeMov) {
                 stop();
-                tInicio = ahora;
-                estado = 2;
+                tInicio_square = ahora;
+                estado_square = 2;
             }
             break;
 
         case 2:
-            if (ahora - tInicio >= timePause) {
-                tInicio = ahora;
-                estado = 3;
+            if (ahora - tInicio_square >= timePause) {
+                tInicio_square = ahora;
+                estado_square = 3;
             }
             break;
 
         case 3:
 
-            if (ahora - tInicio >= timelens) {
-                estado = 4;
+            if (ahora - tInicio_square >= timelens) {
+                estado_square = 4;
             }
             break;
 
         case 4:
-            estado = 0;
+            estado_square = 0;
             return true;
     }
 
@@ -159,37 +164,162 @@ bool ejecutarSecuencia(MovimientoFunc mover,
 
 void square(int timemov,int timepause,int timelens)
 {
-    static int secuencia_general = 0;
 
-    static int estado = 0;
-    static unsigned long tInicio = 0;
-
-    switch (secuencia_general)
+    switch (secuencia_general_square)
     {
         case 0:
             if (ejecutarSecuencia(movadelante, timemov, timepause, timelens, 
-                                  estado,tInicio))
-                secuencia_general++;
+                                  estado_square,tInicio_square))
+                secuencia_general_square++;
             break;
 
         case 1:
-            if (ejecutarSecuencia(movderecha, timemov, timepause, timelens,
-                                  estado,tInicio))
-                secuencia_general++;
+            if (ejecutarSecuencia(movgiroder, timemov, timepause, timelens,
+                                  estado_square,tInicio_square))
+                secuencia_general_square++;
             break;
 
         case 2:
-            if (ejecutarSecuencia(movatras, timemov, timepause, timelens,
-                                  estado,tInicio))
-                secuencia_general++;
+            if (ejecutarSecuencia(movderecha, timemov, timepause, timelens,
+                                  estado_square,tInicio_square))
+                secuencia_general_square++;
             break;
 
         case 3:
+            if (ejecutarSecuencia(movgiroder, timemov, timepause, timelens,
+                                  estado_square,tInicio_square))
+                secuencia_general_square++; // repetir indefinido
+            break;
+        case 4:
+            if (ejecutarSecuencia(movatras, timemov, timepause, timelens, 
+                                  estado_square,tInicio_square))
+                secuencia_general_square++;
+            break;
+
+        case 5:
+            if (ejecutarSecuencia(movgiroder, timemov, timepause, timelens,
+                                  estado_square,tInicio_square))
+                secuencia_general_square++;
+            break;
+
+        case 6:
             if (ejecutarSecuencia(movizquierda, timemov, timepause, timelens,
-                                  estado,tInicio))
-                secuencia_general = 0; // repetir indefinido
+                                  estado_square,tInicio_square))
+                secuencia_general_square++;
+            break;
+
+        case 7:
+            if (ejecutarSecuencia(movgiroder, timemov, timepause, timelens,
+                                  estado_square,tInicio_square))
+                secuencia_general_square = 0; // repetir indefinido
             break;
     }
 }
 
+void hexagonedge(int timemov,int timepause,int timelens)
+{
+    switch(secuencia_general_square)
+    {
+    case 0:  // Noroeste
+        if (ejecutarSecuencia(movnoroeste, timemov, timepause, timelens,
+                              estado_square, tInicio_square))
+            secuencia_general_square++;
+        break;
 
+    case 1:  // Giro
+        if (ejecutarSecuencia(movgiroder, timemov, timepause, timelens,
+                              estado_square, tInicio_square))
+            secuencia_general_square++;
+        break;
+
+
+
+    case 2:  // Adelante
+        if (ejecutarSecuencia(movadelante, timemov, timepause, timelens,
+                              estado_square, tInicio_square))
+            secuencia_general_square++;
+        break;
+
+    case 3:  // Giro
+        if (ejecutarSecuencia(movgiroder, timemov, timepause, timelens,
+                              estado_square, tInicio_square))
+            secuencia_general_square++;
+        break;
+
+
+
+    case 4:  // Noreste
+        if (ejecutarSecuencia(movnoreste, timemov, timepause, timelens,
+                              estado_square, tInicio_square))
+            secuencia_general_square++;
+        break;
+
+    case 5:  // Giro
+        if (ejecutarSecuencia(movgiroder, timemov, timepause, timelens,
+                              estado_square, tInicio_square))
+            secuencia_general_square++;
+        break;
+
+
+
+    case 6:  // Derecha
+        if (ejecutarSecuencia(movderecha, timemov, timepause, timelens,
+                              estado_square, tInicio_square))
+            secuencia_general_square++;
+        break;
+
+    case 7:  // Giro
+        if (ejecutarSecuencia(movgiroder, timemov, timepause, timelens,
+                              estado_square, tInicio_square))
+            secuencia_general_square++;
+        break;
+
+
+
+    case 8:  // Sureste
+        if (ejecutarSecuencia(movsureste, timemov, timepause, timelens,
+                              estado_square, tInicio_square))
+            secuencia_general_square++;
+        break;
+
+    case 9:  // Giro
+        if (ejecutarSecuencia(movgiroder, timemov, timepause, timelens,
+                              estado_square, tInicio_square))
+            secuencia_general_square++;
+        break;
+
+
+
+    case 10: // Atrás
+        if (ejecutarSecuencia(movatras, timemov, timepause, timelens,
+                              estado_square, tInicio_square))
+            secuencia_general_square++;
+        break;
+
+    case 11: // Giro
+        if (ejecutarSecuencia(movgiroder, timemov, timepause, timelens,
+                              estado_square, tInicio_square))
+            secuencia_general_square++;
+        break;
+
+
+
+    case 12: // Suroeste
+        if (ejecutarSecuencia(movsuroeste, timemov, timepause, timelens,
+                              estado_square, tInicio_square))
+            secuencia_general_square++;
+        break;
+
+    case 13: // Giro final
+        if (ejecutarSecuencia(movgiroder, timemov, timepause, timelens,
+                              estado_square, tInicio_square))
+            secuencia_general_square = 0; // Reiniciar hexágono
+        break;
+    }
+}
+
+void reiniciarRutinas() {
+    secuencia_general_square = 0;
+    estado_square = 0;
+    tInicio_square = 0;
+}

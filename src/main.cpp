@@ -19,22 +19,44 @@ void setup() {
 
 void loop() {
     leerSensoresUS();
+    seguirFlama(); // Esto actualiza el estadoActual y direccionFlama
 
-    seguirFlama(); 
+    // A. Lógica para CENTRAR EL FUEGO
+    if (estadoActual == CENTRAR) {
+        stop(); // Detenemos la búsqueda/movimiento
 
-    // C. Lógica de Navegación (Solo si no estamos apagando Y no hay obstáculo)
-    if (estadoActual == BARRIDO) { 
+        if (direccionFlama == FLAMA_IZQUIERDA) {
+            movgiroizq(); // Giro en el eje hacia la izquierda
+        } else if (direccionFlama == FLAMA_DERECHA) {
+            movgiroder(); // Giro en el eje hacia la derecha
+        } else { // FLAMA_CENTRO
+            // Flama Centrada: Pasamos al estado de APAGADO
+            stop(); 
+            digitalWrite(WATER_PUMP, HIGH); // Encender bomba
+            digitalWrite(BUZZER, HIGH);
+            
+            tInicioApagado = millis(); // <-- ¡ESTA LÍNEA AHORA FUNCIONARÁ!
+            
+            estadoActual = APAGANDO;
+        }
+    }
+
+    // B. Lógica de BÚSQUEDA (El robot se mueve solo si está en BARRIDO)
+    else if (estadoActual == BARRIDO) { 
         
-        // Nueva condición de seguridad:
+        // Condición de seguridad (Obstáculos)
         if (distanciaIzquierda > DISTANCIA_SEGURIDAD && distanciaDerecha > DISTANCIA_SEGURIDAD) {
-            square(1500, 500, 2500); // Continúa la rutina si es seguro
+            square(1500, 500, 2500); // Rutina de búsqueda
         } else {
             // ¡Peligro de choque! Detener el robot.
             stop(); 
-            
         }
 
-    } else {
-        stop(); // Detiene los motores si está en modo APAGANDO
+    } 
+    
+    // C. Lógica de APAGADO (Solo espera a que pase el tiempo)
+    else if (estadoActual == APAGANDO) {
+        stop(); // Asegúrate de que el robot esté completamente quieto mientras dispara
+        // La lógica del temporizador para apagar la bomba está dentro de seguirFlama()
     }
 }

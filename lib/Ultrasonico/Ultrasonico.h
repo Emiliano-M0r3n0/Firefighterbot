@@ -5,7 +5,7 @@
 extern float distanciaIzquierda;
 extern float distanciaDerecha;
 // Constantes
-const int DISTANCIA_SEGURIDAD = 3;
+const int DISTANCIA_SEGURIDAD = 3; //Se encuentra en cm
 const long INTERVALO_LECTURA_US = 50; // Intervalo para leer US en ms (ej. 50 ms)
 
 

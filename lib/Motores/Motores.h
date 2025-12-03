@@ -8,6 +8,11 @@
 
 #define MOTORES_H
 typedef void (*MovimientoFunc)();
+
+// Variables de estado para la rutina de búsqueda
+extern int secuencia_general_square;
+extern int estado_square;
+extern unsigned long tInicio_square;
 /// @brief Hace una declaración de todos los pines adjuntados a los motores como salidas, asi como los canales PWM
 void iniciarmotores();
 /// @brief Enciende los motores en orden para avanzar hacia adelante
@@ -39,6 +44,8 @@ void stop();
 
 void moverMotores(float v1, float v2, float v3, float v4);
 
+void reiniciarRutinas();
+
 bool ejecutarSecuencia(MovimientoFunc mover,
                        unsigned long timeMov,
                        unsigned long timePause,
@@ -53,5 +60,16 @@ bool ejecutarSecuencia(MovimientoFunc mover,
 /// @param timelens Tiempo que hace la lectura de la flama
 void square(int timemov,int timepause,int timelens);
 
+//Rutinas
+/// @brief Realiza una rutina en forma de hexagono
+/// @param timemov Tiempo que dura el movimiento 
+/// @param timepause Pausa entre movimientos
+/// @param timelens Tiempo que hace la lectura de la flama
+void hexagonedge(int timemov,int timepause,int timelens);
 
+// Variables de estado para la rutina de búsqueda (DECLARACIÓN CORRECTA)
+extern int secuencia_general_square;
+extern int estado_square;
+extern unsigned long tInicio_square;
+void reiniciarRutinas();
 #endif

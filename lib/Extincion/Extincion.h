@@ -3,12 +3,24 @@
 
 // Asegúrate de que el enum es público
 enum EstadoExtincion {
-    BARRIDO,
-    APAGANDO
+    BARRIDO, // Robot buscando y moviéndose
+    CENTRAR, // Robot girando para alinear el fuego (NUEVO ESTADO)
+    APAGANDO // Robot disparando agua
 };
 
 // **AÑADE ESTA LÍNEA:** Declara la variable como global (externa)
 extern EstadoExtincion estadoActual;
+
+// Nueva variable para indicar si la flama está a la izquierda, derecha o centrada
+enum DireccionFlama {
+    FLAMA_IZQUIERDA,
+    FLAMA_DERECHA,
+    FLAMA_CENTRO
+};
+
+extern DireccionFlama direccionFlama;
+
+extern unsigned long tInicioApagado;
 
 /// @brief Ajusta sensores como salidas, adjuta los servos a sus pines, coloca la bomba en apagado y como salida
 void iniciarExtincion(); 

@@ -1,4 +1,5 @@
 #include "Extincion.h"
+#include "Motores.h"
 #include <Arduino.h>
 #include <pines.h>
 #include <ESP32Servo.h>
@@ -10,18 +11,18 @@ const int POS_MIN = 20; //MIN y MAX son los topes que encuentra
 const int POS_MAX = 160;
 int umbral = 2300; //Apartir de que valor esta detectando flama
 int Dirsensor = 1;
+unsigned long tInicioApagado = 0;
+EstadoExtincion estadoActual = BARRIDO;
+DireccionFlama direccionFlama = FLAMA_CENTRO;
 
 // Nuevas variables para control NO BLOQUEANTE
 bool flamaEncontrada = false; // Estado para saber si se encontró flama
-unsigned long tInicioApagado = 0; // Tiempo para el retardo de apagado (750ms)
 const long tiempoApagado = 750;  // Duración del chorro de agua
 unsigned long tUltimoBarrido = 0; // Tiempo para el retardo de barrido (10ms)
 const long intervaloBarrido = 10; // Intervalo para mover el servo sensor
 
 // Variable estática original (la definiremos como global si es necesario que persista fuera de la función)
 int lastPos = -1; // Mantenemos la lógica de la posición anterior
-
-EstadoExtincion estadoActual = BARRIDO;
 
 void iniciarExtincion() {
     posSensor = 90;
@@ -49,34 +50,46 @@ void seguirFlama() {
     bool indicador = leerSensores();
     unsigned long ahora = millis();
     
-    // Si la flama se detecta y el sistema estaba en modo BARRIDO
-    if (indicador == true && estadoActual == BARRIDO) {
+    // ----------- LÓGICA DE DETECCIÓN Y TRANSICIÓN -----------
+    
+    // Si la flama se detecta y el sistema NO está disparando
+    if (indicador == true && estadoActual != APAGANDO) {
         
-        // 1. **INICIO DE APAGADO**
-        servopump.write(posSensor);
-        digitalWrite(WATER_PUMP, HIGH);
-        digitalWrite(BUZZER,HIGH);
-        tInicioApagado = ahora; // Marca el inicio del tiempo de chorro
-        estadoActual = APAGANDO;
+        // Determinar dónde está la flama para decirle al robot cómo girar
+        if (posSensor < 70) { // Si el sensor está en el lado izquierdo (ej. 20 a 70 grados)
+            direccionFlama = FLAMA_IZQUIERDA;
+        } else if (posSensor > 110) { // Si el sensor está en el lado derecho (ej. 110 a 160 grados)
+            direccionFlama = FLAMA_DERECHA;
+        } else { // Si está más o menos centrado (70 a 110 grados)
+            direccionFlama = FLAMA_CENTRO;
+        }
+        
+        // Transicionar al nuevo estado CENTRAR si no está ya apagando
+        if(estadoActual != APAGANDO) {
+            estadoActual = CENTRAR;
+        }
         
     }
-
-    // Lógica para el estado **APAGANDO** (Reemplaza el delay(750))
+    
+    // ----------- LÓGICA DEL ESTADO APAGANDO (Tiempo de chorro) -----------
     if (estadoActual == APAGANDO) {
         if (ahora - tInicioApagado >= tiempoApagado) {
             
             // 2. **FIN DE APAGADO**
             digitalWrite(WATER_PUMP, LOW);
             estadoActual = BARRIDO; // Regresa al modo barrido
+            reiniciarRutinas();
+            // NOTA: El servo de la bomba (servopump) ya no se mueve, se queda en 90
             
         } else {
-            // Mientras no se cumpla el tiempo, sigue en modo APAGANDO (no bloquea)
+            // Mientras no se cumpla el tiempo, sigue en modo APAGANDO (sin bloqueo)
             return; 
         }
     }
-
-    // Lógica para el estado **BARRIDO** (Reemplaza el delay(10) y la rama 'else' del original)
-    if (estadoActual == BARRIDO) {
+    
+    // ----------- LÓGICA DEL ESTADO BARRIDO (Movimiento del Servo) -----------
+    // El barrido del servo debe continuar a menos que estemos en APAGANDO
+    if (estadoActual == BARRIDO || estadoActual == CENTRAR) {
         
         // El servo se mueve solo si ha pasado el intervalo de 10ms
         if (ahora - tUltimoBarrido >= intervaloBarrido) {
@@ -89,7 +102,7 @@ void seguirFlama() {
                 Dirsensor = -Dirsensor;
             }
 
-            // Solo mover el servo si la posición cambió (manteniendo tu lógica original)
+            // Solo mover el servo si la posición cambió
             if (posSensor != lastPos) {
                 servosensor.write(posSensor);
                 lastPos = posSensor;
@@ -97,7 +110,6 @@ void seguirFlama() {
         }
     }
 }
-
 //-----------------Funciones para Debuggear-----------------//
 
 void zero_servo()
